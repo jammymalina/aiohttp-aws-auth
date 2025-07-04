@@ -64,6 +64,7 @@ class AwsSigV4AuthSigner:
         if credentials.session_token:
             signed_headers += ";x-amz-security-token"
 
+        payload_bytes: bytes = b""
         if isinstance(request.body, bytes):
             payload_bytes = request.body
         else:
@@ -183,7 +184,6 @@ class AwsSigV4AssumeRoleAuth:
         role_arn: str,
         service: str = "execute-api",
         session: Any = None,
-        async_session: Any = None,
         client_kwargs: dict | None = None,
         async_client_kwargs: dict | None = None,
         duration: timedelta | None = None,
@@ -193,7 +193,6 @@ class AwsSigV4AssumeRoleAuth:
         self._session = session
         self._lock = threading.RLock()
         self._async_lock = asyncio.Lock()
-        self._async_session = async_session
         self._client_kwargs = client_kwargs or {}
         self._async_client_kwargs = async_client_kwargs or {}
         self._credentials: AwsCredentials | None = None
@@ -207,7 +206,7 @@ class AwsSigV4AssumeRoleAuth:
             if self._async_credentials and not self._async_credentials.is_expired():
                 return
 
-            async with self._async_session.client("sts", **self._async_client_kwargs) as sts:
+            async with self._session.client("sts", **self._async_client_kwargs) as sts:
                 response = await sts.assume_role(
                     RoleArn=self._role_arn,
                     RoleSessionName=str(uuid.uuid4()),
@@ -220,7 +219,7 @@ class AwsSigV4AssumeRoleAuth:
                 )
 
     async def __call__(self, req: aiohttp.ClientRequest, handler: aiohttp.ClientHandlerType) -> aiohttp.ClientResponse:
-        if self._async_session is None:
+        if self._session is None:
             raise ValueError("Please specify the async session")
 
         await self.get_async_credentials()

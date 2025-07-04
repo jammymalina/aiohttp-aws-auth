@@ -2,14 +2,14 @@
 
 ## Overview
 
-This module provides AWS Signature Version 4 (SigV4) authentication for aiohttp. It includes two main classes:
+This module provides AWS Signature Version 4 (SigV4) authentication for aiohttp through two primary middleware classes:
 
 - `AwsSigV4Auth`: For direct AWS credential authentication
 - `AwsSigV4AssumeRoleAuth`: For authentication using AWS IAM Role assumption
 
 ## Features
 
-- Simple integration with HTTPX
+- Simple integration with aiohttp
 - Support for both synchronous and asynchronous authentication
 - AWS SigV4 signing for API requests
 - IAM Role assumption with configurable duration
@@ -21,7 +21,7 @@ This module provides AWS Signature Version 4 (SigV4) authentication for aiohttp.
 Install the package using pip:
 
 ```bash
-pip install httpx-aws-auth
+pip install aiohttp-aws-auth
 ```
 
 ## Usage
@@ -29,8 +29,8 @@ pip install httpx-aws-auth
 ### Basic AWS Credentials Authentication
 
 ```python
-import httpx
-from httpx_aws_auth import AwsSigV4Auth, AwsCredentials
+import aiohttp
+from aiohttp_aws_auth import AwsSigV4Auth, AwsCredentials
 
 # Create AWS credentials
 credentials = AwsCredentials(
@@ -38,64 +38,39 @@ credentials = AwsCredentials(
     secret_key='YOUR_SECRET_KEY'
 )
 
-# Create an authenticated client
-client = httpx.Client(
-    auth=AwsSigV4Auth(
-        credentials=credentials,
-        region='us-west-2',
-        service='execute-api'
-    )
+# Create an authentication middleware
+aws_auth_middleware = AwsSigV4Auth(
+    credentials=credentials,
+    region='us-west-2',
+    service='execute-api',
 )
 
-# Make a request
-response = client.get('https://your-api-endpoint.com')
-```
-
-### IAM Role Assumption (Synchronous)
-
-```python
-import boto3
-from httpx_aws_auth import AwsSigV4AssumeRoleAuth
-
-# Create AWS session
-session = boto3.Session()
-
-# Create an authenticated client with role assumption
-client = httpx.Client(
-    auth=AwsSigV4AssumeRoleAuth(
-        region='us-west-2',
-        role_arn='arn:aws:iam::123456789012:role/YourRole',
-        session=session,
-        duration=timedelta(hours=1)
-    )
-)
 
 # Make a request
-response = client.get('https://your-api-endpoint.com')
+async with ClientSession(middlewares=(aws_auth_middleware,)) as session:
+    resp = await session.get("https://your-api-endpoint.com")
 ```
 
-### IAM Role Assumption (Asynchronous)
+### IAM Role Assumption
 
 ```python
 import aioboto3
-from httpx_aws_auth import AwsSigV4AssumeRoleAuth
+from aiohttp_aws_auth import AwsSigV4AssumeRoleAuth
 
 # Create async AWS session
-async_session = aioboto3.Session()
+session = aioboto3.Session()
 
-# Create an authenticated async client with role assumption
-async_client = httpx.AsyncClient(
-    auth=AwsSigV4AssumeRoleAuth(
-        region='us-west-2',
-        role_arn='arn:aws:iam::123456789012:role/YourRole',
-        async_session=async_session,
-        duration=timedelta(hours=1)
-    )
+# Create an authentication middleware
+aws_auth_middleware = AwsSigV4AssumeRoleAuth(
+    region='us-west-2',
+    role_arn='arn:aws:iam::123456789012:role/YourRole',
+    session=session,
+    duration=timedelta(hours=1),
 )
 
 # Make an async request
-async with async_client as client:
-    response = await client.get('https://your-api-endpoint.com')
+async with ClientSession(middlewares=(aws_auth_middleware,)) as session:
+    resp = await session.get("https://your-api-endpoint.com")
 ```
 
 ## Configuration Options
@@ -119,5 +94,4 @@ async with async_client as client:
 ## Dependencies
 
 - aiohttp
-- boto3 (for synchronous authentication)
-- aioboto3 (for asynchronous authentication)
+- aioboto3 (only needed when using AwsSigV4AssumeRoleAuth)

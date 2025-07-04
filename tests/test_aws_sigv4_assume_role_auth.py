@@ -38,7 +38,7 @@ async def test_assume_role(mocker: MockerFixture, freezer: typing.Any, method_na
     session_mock.client = mocker.Mock(return_value=sts_mock_context)
 
     auth = AwsSigV4AssumeRoleAuth(
-        async_session=session_mock, role_arn="arn:aws:iam::123456789012:role/test-role", region="eu-west-1"
+        session=session_mock, role_arn="arn:aws:iam::123456789012:role/test-role", region="eu-west-1"
     )
     request = aiohttp.ClientRequest(
         method=method_name,
