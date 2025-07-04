@@ -1,0 +1,54 @@
+[project]
+name = "aiohttp-aws-auth"
+version = "0.0.1"
+description = "Provides AWS authentication middlewares to be used with aiohttp"
+readme = "README.md"
+authors = [
+    { name = "Jakub Jantosik", email = "jakub.jantosik@gmail.com" }
+]
+
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet",
+]
+
+requires-python = ">=3.10"
+
+dependencies = [
+    "aiohttp>=3.12.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.1",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.0.0",
+    "pytest-freezeblaster>=2.0.4",
+    "pytest-mock>=3.14.1",
+    "pytest-timeout>=2.4.0",
+    "ruff>=0.12.1",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+lint.extend-select = ["I"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+timeout = 30
