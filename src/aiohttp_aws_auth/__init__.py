@@ -68,6 +68,7 @@ class AwsSigV4AuthSigner:
             payload_bytes = request.body
         else:
             payload_bytes = await request.body.as_bytes()
+
         payload_hash = hashlib.sha256(payload_bytes).hexdigest()
 
         canonical_request: str = (
@@ -145,7 +146,7 @@ class AwsSigV4AuthSigner:
     def _get_canonical_querystring(self, request: aiohttp.ClientRequest) -> str:
         canonical_querystring = ""
 
-        querystring_sorted = "&".join(sorted(request.url.query_string.split("&")))
+        querystring_sorted = "&".join(sorted(request.url.raw_query_string.split("&")))
 
         for query_param in querystring_sorted.split("&"):
             key_val_split = query_param.split("=", 1)

@@ -120,8 +120,11 @@ async def test_aws_request_auth_post_content(mocker: MockerFixture) -> None:
     auth = AwsSigV4Auth(credentials=credentials, region="eu-west-1")
     request = aiohttp.ClientRequest(
         method="POST",
+        headers={
+            "Content-Type": "application/json",
+        },
         url=URL("https://api.example.com"),
-        data={"key1": "value1", "key2": "value2"},
+        data=b'{"key1":"value1","key2":"value2"}',
     )
 
     # Act
